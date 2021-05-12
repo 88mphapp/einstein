@@ -222,4 +222,32 @@ contract("basic tests", accounts => {
     const balance2 = BigNumber(await ein.balanceOf(accounts[1]));
     assertEpsilonEq(balance2, balance0, "balance wrong after receiving");
   });
+
+  it("should handle overlapping unlocks correctly", async () => {
+    // wait 0.3 unlock time
+    await timePass(unlockTime * 0.3);
+
+    // woof
+    await mph.approve(ein.address, num2str(amount));
+    await ein.woof(num2str(amount));
+
+    // balance should be 0.3 * minted amount
+    const balance0 = BigNumber(await ein.balanceOf(accounts[0]));
+    assertEpsilonEq(
+      balance0,
+      mphToEIN(amount).times(0.3),
+      "balance wrong after waiting"
+    );
+
+    // wait unlock time
+    await timePass(unlockTime);
+
+    // balance should be 2 * amount
+    const balance1 = BigNumber(await ein.balanceOf(accounts[0]));
+    assertEpsilonEq(
+      balance1,
+      mphToEIN(amount).times(2),
+      "balance wrong after waiting"
+    );
+  });
 });
